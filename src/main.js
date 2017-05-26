@@ -2,6 +2,7 @@ const React = require("react");
 const ReactDOM = require("react-dom");
 const SimpleMarkdown = require("simple-markdown");
 const {StyleSheet, css} = require("aphrodite");
+const hljs = require("highlightjs");
 
 const styles = StyleSheet.create({
     h1: {
@@ -141,7 +142,31 @@ const styles = StyleSheet.create({
         width: "100%",
         textAlign: "center",
     },
+
+    code: {
+        fontSize: "5vh",
+    },
 });
+
+class HighlightedCode extends React.Component {
+    highlight(element) {
+        if (element) {
+            hljs.highlightBlock(element);
+        }
+    }
+
+    render() {
+        const className = this.props.lang
+            ? `${this.props.lang} ${css(styles.code)}`
+            : css(styles.code);
+
+        return <pre>
+            <code className={className} ref={e => this.highlight(e)}>
+                {this.props.children}
+            </code>
+        </pre>;
+    }
+}
 
 const rules = {
     ...SimpleMarkdown.defaultRules,
@@ -184,6 +209,16 @@ const rules = {
             return <strong key={state.key} className={css(styles.strong)}>
                 {output(node.content, state)}
             </strong>;
+        },
+    },
+
+    codeBlock: {
+        ...SimpleMarkdown.defaultRules.codeBlock,
+
+        react: (node, output, state) => {
+            return <HighlightedCode lang={node.lang} key={state.key}>
+                {node.content}
+            </HighlightedCode>;
         },
     },
 
